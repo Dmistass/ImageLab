@@ -1,17 +1,10 @@
 #pragma once
-#include "MyString.h"
-#include "Image.h"
 #include <vector>
 
-class MyDoubleVector : public std::vector<double> {
-
-};
-
-
-class MyStringVector : public std::vector<MyString> {
-
-};
-
-class MyImageVector : public std::vector<Image> {
-
+template <typename T>
+class MyVector : public std::vector<T> {
+public:
+    // Хорошая практика: наследовать конструкторы базового класса,
+    // чтобы работали инициализаторы списков {1, 2, 3} и другие конструкторы
+    using std::vector<T>::vector;
 };

@@ -4,12 +4,14 @@
 
 class ImageList {
 private:
-	MyImageVector images;
+	MyVector<Image> images;
 
 	ImageList();
 	~ImageList();
 
-	Image getByName(MyString& name);
+	Image* getByName(MyString& name);
+
+	int findImageIndex(MyString& name);
 
 public:
 	ImageList(const ImageList&) = delete;
@@ -17,8 +19,12 @@ public:
 
 	static ImageList& getInstance();
 
-	ImageList& operator[](MyString& name);
+	Image* add(MyString& path);
 
-	const ImageList& operator[](MyString& name) const;
+	void remove(MyString& name);
+
+	void printAll();
+
+	Image* operator[](MyString& name);
 };
 

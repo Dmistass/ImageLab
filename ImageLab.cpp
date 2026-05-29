@@ -40,6 +40,12 @@ void executeCommand(MyString& command) {
 	else if (cmdName == "show-filters" && argsCount == 2) {
 		showFilters(args[1]);
 	}
+	else if (cmdName == "show-all-filters") {
+		showAllFilters();
+	}
+	else if (cmdName == "save" && argsCount == 3) {
+		saveImage(args[1], args[2]);
+	}
 	else {
 		std::cout << "Invalid command!\n";
 	}

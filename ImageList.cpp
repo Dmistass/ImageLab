@@ -40,6 +40,13 @@ Image* ImageList::add(MyString& path)
 {
 	Image* image = new Image(path);
 
+	// Если загрузка не удалась
+	if (!image->isLoaded()) {
+		std::cout << "Failed to add: " << image->getName() << "\n";
+		delete image;
+		return nullptr;
+	}
+
 	images.push_back(*image);
 
 	std::cout << "Added: " << images[images.size() - 1].getName() << "\n";
@@ -66,6 +73,17 @@ void ImageList::printAll()
 	{
 		std::cout << images[i].getName() << "\n";
 	}
+}
+
+MyVector<MyString> ImageList::getImageList()
+{
+	MyVector<MyString> imagesName;
+	for (size_t i = 0; i < images.size(); i++)
+	{
+		imagesName.push_back(images[i].getName());
+	}
+
+	return imagesName;
 }
 
 Image* ImageList::operator[](MyString& name)

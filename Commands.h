@@ -12,3 +12,7 @@ void addFilter(MyString& imageName, MyString& filterName);
 void removeFilter(MyString& imageName, int filterIndex);
 
 void showFilters(MyString& name);
+
+void showAllFilters();
+
+void saveImage(MyString& name, MyString& savePath);

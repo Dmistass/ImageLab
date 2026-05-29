@@ -49,3 +49,24 @@ void showFilters(MyString& name)
 
 	image->showFilters();
 }
+
+void saveImage(MyString& name, MyString& savePath)
+{
+	Image* image = ImageList::getInstance()[name];
+	if (!image) {
+		std::cout << "Image not found\n";
+		return;
+	}
+
+	image->save(savePath);
+}
+
+void showAllFilters()
+{
+	MyVector<MyString> images = ImageList::getInstance().getImageList();
+
+	for (size_t i = 0; i < images.size(); i++)
+	{
+		showFilters(images[i]);
+	}
+}

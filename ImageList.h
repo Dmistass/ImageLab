@@ -25,6 +25,8 @@ public:
 
 	void printAll();
 
+	MyVector<MyString> getImageList();
+
 	Image* operator[](MyString& name);
 };
 

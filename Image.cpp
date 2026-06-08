@@ -7,8 +7,12 @@
 #include "Filter.h"
 #include "FilterFactory.h"
 
-Image::Image(MyString& path): path(path), name(path) {
+Image::Image(MyString& path): path(path), name(path), outputName(path) {
 	load(path);
+}
+
+Image::Image(int width, int height) : width(width), height(height), pixels(static_cast<std::size_t>(width)* static_cast<std::size_t>(height))
+{
 }
 
 Image::~Image()
@@ -38,7 +42,7 @@ void Image::addFilter(MyString& filterName)
 		return;
 	}
 	filters.push_back(filter);
-	std::cout << filter << " added to " << name << "\n";
+	std::cout << filter->GetName() << " added to " << name << "\n";
 }
 
 bool Image::load(MyString& imagePath)
@@ -46,6 +50,7 @@ bool Image::load(MyString& imagePath)
 	path = imagePath;
 	size_t pos = path.find_last_of("/\\");
 	name = path.substr(pos + 1).c_str();
+	outputName = name;
 
 	if (ImageList::getInstance()[name]) {
 		std::cout << "This image already exist!\n";
@@ -76,9 +81,73 @@ void Image::showFilters()
 	std::cout << name << " filters:\n";
 	for (size_t i = 0; i < filters.size(); i++)
 	{
-		std::cout << " " << i << ". " << filters[i] << "\n";
+		std::cout << " " << i << ". " << filters[i]->GetName() << "\n";
 	}
 }
+
+
+int Image::GetWidth() const
+{
+	return width;
+}
+
+int Image::GetHeight() const
+{
+	return height;
+}
+
+std::size_t Image::GetPixelCount() const
+{
+	return pixels.size();
+}
+
+Pixel& Image::GetPixel(int x, int y)
+{
+	return pixels[static_cast<std::size_t>(y) * static_cast<std::size_t>(width) + static_cast<std::size_t>(x)];
+}
+
+const Pixel& Image::GetPixel(int x, int y) const
+{
+	return pixels[static_cast<std::size_t>(y) * static_cast<std::size_t>(width) + static_cast<std::size_t>(x)];
+}
+
+std::vector<Pixel>& Image::GetPixels()
+{
+	return pixels;
+}
+
+const std::vector<Pixel>& Image::GetPixels() const
+{
+	return pixels;
+}
+
+int Image::GetPType() const
+{
+	return PType;
+}
+
+void Image::setPType(int type)
+{
+	PType = type;
+}
+
+void Image::applyFilters()
+{
+	for (auto filter : filters)
+	{
+		filter->apply(this);
+
+		std::cout << "Filter " << filter->GetName() << " was apllyed to " << name << "\n";
+	}
+
+	filters.clear();
+}
+
+void Image::addSuffixToOutpur(MyString& suffix)
+{
+	outputName += "_" + suffix;
+}
+
 
 Pixel::Pixel() : r(0), g(0), b(0)
 {

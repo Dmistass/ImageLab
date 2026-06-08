@@ -1,40 +1,80 @@
 #pragma once
 #include "MyString.h"
-#include "Image.h"
+
+class Image;
 
 class Filter {
 public:
-	static const int MATRIX_SIZE = 3;
+	static constexpr int MATRIX_SIZE = 3;
+	using Matrix = double[MATRIX_SIZE][MATRIX_SIZE];
 protected:
 	MyString name;
-	double matrix[MATRIX_SIZE][MATRIX_SIZE];
+	Matrix matrix;
 	double normKff = 1;
 
 public:
+	Filter(const MyString& name);
+	Filter(const MyString& name, const Matrix& matrix, double normKff = 1);
+	virtual ~Filter() = default;
 
-	Filter(MyString name, const double matrix[MATRIX_SIZE][MATRIX_SIZE], double normKff = 1);
+	Filter(const Filter&) = delete;
+	Filter& operator=(const Filter&) = delete;
+	Filter(Filter&&) = delete;
+	Filter& operator=(Filter&&) = delete;
 
-	virtual void apply(Image* image);
+	const MyString& GetName() const;
+	const Matrix& GetMatrix() const;
+	double GetNormKff() const;
+
+	virtual Image* apply(Image* image) const;
 
 };
 
-
-class ContrastFilter : public Filter {
+class MatrixFilter : public Filter {
 public:
-	const double contrastMatrix[MATRIX_SIZE][MATRIX_SIZE] = {
-		{0, -1, 0},
-		{-1, 5, -1},
-		{0, -1, 0},
-	};
+	MatrixFilter(const MyString& name, const Matrix& matrix, double normKff = 1);
+	virtual Image* apply(Image* image) const override;
+};
+
+class ContrastFilter : public MatrixFilter {
+public:
+	static Matrix contrastMatrix;
 	ContrastFilter();
 };
 
-class BlurFilter : public Filter {
+class BlurFilter : public MatrixFilter {
 public:
-	const double blurMatrix[MATRIX_SIZE][MATRIX_SIZE] = {
-		{1, 1, 1},
-		{1, 1, 1},
-		{1, 1, 1},
-	};
+	static Matrix blurMatrix;
 	BlurFilter();
+};
+
+class SharpenFilter : public MatrixFilter {
+public:
+	static Matrix sharpenMatrix;
+	SharpenFilter();
+};
+
+class ContourFilter : public MatrixFilter {
+public:
+	static Matrix contourMatrix;
+	ContourFilter();
+};
+
+class NegativeFilter : public Filter {
+public:
+	NegativeFilter();
+	Image* apply(Image* image) const override;
+};
+
+class ThresholdFilter : public Filter {
+	int threshold_;
+public:
+	explicit ThresholdFilter(int threshold = 128);
+	Image* apply(Image* image) const override;
+};
+
+class ContrastNormalizationFilter : public Filter {
+public:
+	ContrastNormalizationFilter();
+	Image* apply(Image* image) const override;
 };

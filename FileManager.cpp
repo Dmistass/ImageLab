@@ -170,29 +170,18 @@ bool FileManager::save(Image* image, const MyString& savePath)
     }
 
     MyVector<char> outBuffer;
+    int imagePType = image->GetPType();
 
-    // Определяем тип для сохранения
-    bool allGray = true;
-    for (size_t i = 0; i < image->pixels.size(); i++) {
-        if (image->pixels[i].r != image->pixels[i].g || image->pixels[i].g != image->pixels[i].b) {
-            allGray = false;
-            break;
-        }
-    }
-
-    if (image->maxVal == 1) {
+    if (imagePType == 1 || imagePType == 4) {
         // Чёрно-белое → P4
-        image->PType = 4;
         saveP4(image, outBuffer);
     }
-    else if (allGray) {
+    else if (imagePType == 2 || imagePType == 5) {
         // Серое → P5
-        image->PType = 5;
         saveP5(image, outBuffer);
     }
     else {
         // Цветное → P6
-        image->PType = 6;
         saveP6(image, outBuffer);
     }
 

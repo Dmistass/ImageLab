@@ -1,3 +1,4 @@
+#pragma once
 #include <map>
 #include "MyString.h"
 #include "Filter.h"
@@ -7,10 +8,7 @@ private:
 	FilterFactory();
 	~FilterFactory();
 
-	static std::map<MyString, Filter*> filtersLibrary = {
-		{"Blur", new BlurFilter()},
-		{"Contrast", new ContrastFilter()}
-	};
+	static std::map<MyString, Filter*> filtersLibrary;
 
 public:
 	FilterFactory(const FilterFactory&) = delete;

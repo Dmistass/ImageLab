@@ -17,6 +17,7 @@ class Image {
 private:
 	MyString name;
 	MyString path;
+	MyString outputName;
 	MyVector<Filter*> filters;
 	MyVector<Pixel> pixels;
 	int PType = 0;
@@ -26,6 +27,7 @@ private:
 
 public:
 	Image(MyString& path);
+	Image(int width, int height);
 	~Image();
 
 	MyString getName();
@@ -34,7 +36,19 @@ public:
 	bool load(MyString& imagePath);
 	bool save(const MyString& savePath);
 
+	int GetWidth() const;
+	int GetHeight() const;
+	std::size_t GetPixelCount() const;
+	Pixel& GetPixel(int x, int y);
+	const Pixel& GetPixel(int x, int y) const;
+	std::vector<Pixel>& GetPixels();
+	const std::vector<Pixel>& GetPixels() const;
+	int GetPType() const;
+	void setPType(int type);
+
 	void addFilter(MyString& filter);
 	void removeFilter(int filterIndex);
 	void showFilters();
+	void applyFilters();
+	void addSuffixToOutpur(MyString& suffix);
 };

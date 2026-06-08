@@ -46,6 +46,12 @@ void executeCommand(MyString& command) {
 	else if (cmdName == "save" && argsCount == 3) {
 		saveImage(args[1], args[2]);
 	}
+	else if (cmdName == "run" && argsCount == 2) {
+		run(args[1]);
+	}
+	else if (cmdName == "run-all") {
+		runAll();
+	}
 	else {
 		std::cout << "Invalid command!\n";
 	}

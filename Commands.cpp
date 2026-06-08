@@ -39,6 +39,27 @@ void removeFilter(MyString& imageName, int filterIndex)
 	image->removeFilter(filterIndex);
 }
 
+void run(MyString& imageName)
+{
+	Image* image = ImageList::getInstance()[imageName];
+	if (!image) {
+		std::cout << "Image not found\n";
+		return;
+	}
+
+	image->applyFilters();
+}
+
+void runAll()
+{
+	MyVector<MyString> images = ImageList::getInstance().getImageList();
+
+	for (size_t i = 0; i < images.size(); i++)
+	{
+		run(images[i]);
+	}
+}
+
 void showFilters(MyString& name)
 {
 	Image* image = ImageList::getInstance()[name];

@@ -24,6 +24,11 @@ MyString Image::getName()
 	return name;
 }
 
+MyString Image::getOutputName()
+{
+	return outputName;
+}
+
 bool Image::isLoaded()
 {
 	return PType > 0 && width > 0 && height > 0;
@@ -133,19 +138,28 @@ void Image::setPType(int type)
 
 void Image::applyFilters()
 {
+	// Разделяем outputName на имя без расширения и расширение
+	MyString baseName = outputName;
+	MyString extension;
+
+	size_t dotPos = outputName.find_last_of('.');
+	if (dotPos != MyString::npos) {
+		extension = outputName.substr(dotPos).c_str();
+		baseName = outputName.substr(0, dotPos).c_str();
+	}
+
 	for (auto filter : filters)
 	{
 		filter->apply(this);
 
+		baseName += "_";
+		baseName += filter->GetName();
+
 		std::cout << "Filter " << filter->GetName() << " was apllyed to " << name << "\n";
 	}
 
+	outputName = (baseName + extension).c_str();
 	filters.clear();
-}
-
-void Image::addSuffixToOutpur(MyString& suffix)
-{
-	outputName += "_" + suffix;
 }
 
 

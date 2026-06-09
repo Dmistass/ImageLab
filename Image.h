@@ -31,6 +31,7 @@ public:
 	~Image();
 
 	MyString getName();
+	MyString getOutputName();
 	bool isLoaded();
 
 	bool load(MyString& imagePath);
@@ -50,5 +51,4 @@ public:
 	void removeFilter(int filterIndex);
 	void showFilters();
 	void applyFilters();
-	void addSuffixToOutpur(MyString& suffix);
 };

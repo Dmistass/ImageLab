@@ -1,7 +1,8 @@
 #pragma once
 #include "MyString.h"
+#include "MyVector.h"
 
-void loadImage(MyString& path);
+void loadImages(MyVector<MyString>& paths);
 
 void removeImage(MyString& name);
 

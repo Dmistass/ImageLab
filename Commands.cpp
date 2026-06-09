@@ -3,9 +3,12 @@
 #include "ImageList.h"
 
 
-void loadImage(MyString& path)
+void loadImages(MyVector<MyString>& paths)
 {
-	ImageList::getInstance().add(path);
+	for (size_t i = 0; i < paths.size(); i++)
+	{
+		ImageList::getInstance().add(paths[i]);
+	}
 }
 
 void removeImage(MyString& name)
@@ -79,7 +82,12 @@ void saveImage(MyString& name, MyString& savePath)
 		return;
 	}
 
-	image->save(savePath);
+	if (savePath.empty()) {
+		image->save(image->getOutputName());
+	}
+	else {
+		image->save(savePath);
+	}
 }
 
 void showAllFilters()

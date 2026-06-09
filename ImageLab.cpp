@@ -22,8 +22,13 @@ void executeCommand(MyString& command) {
 
 	MyString cmdName = args[0];
 
-	if (cmdName == "load" && argsCount == 2) {
-		loadImage(args[1]);
+	if (cmdName == "load" && argsCount >= 2) {
+		MyVector<MyString> paths;
+		for (int i = 1; i < argsCount; i++)
+		{
+			paths.push_back(args[i]);
+		}
+		loadImages(paths);
 	}
 	else if (cmdName == "remove" && argsCount == 2) {
 		removeImage(args[1]);
@@ -42,6 +47,10 @@ void executeCommand(MyString& command) {
 	}
 	else if (cmdName == "show-all-filters") {
 		showAllFilters();
+	}
+	else if (cmdName == "save" && argsCount == 2) {
+		MyString emptyPath;
+		saveImage(args[1], emptyPath);
 	}
 	else if (cmdName == "save" && argsCount == 3) {
 		saveImage(args[1], args[2]);

@@ -2,100 +2,140 @@
 #include "Commands.h"
 #include "ImageList.h"
 
-
-void loadImages(MyVector<MyString>& paths)
-{
-	for (size_t i = 0; i < paths.size(); i++)
-	{
-		ImageList::getInstance().add(paths[i]);
-	}
+// ===== Статическая фабрика Command::create =====
+Command* Command::create(const MyString& name, const MyVector<MyString>& args) {
+    if (name == "load" && args.size() >= 1)
+        return new LoadImagesCommand(args);
+    if (name == "remove" && args.size() == 1)
+        return new RemoveImageCommand(args);
+    if (name == "printAll" && args.size() == 0)
+        return new PrintAllCommand();
+    if (name == "add-filter" && args.size() == 2)
+        return new AddFilterCommand(args);
+    if (name == "remove-filter" && args.size() == 2)
+        return new RemoveFilterCommand(args);
+    if (name == "show-filters" && args.size() == 1)
+        return new ShowFiltersCommand(args);
+    if (name == "show-all-filters" && args.size() == 0)
+        return new ShowAllFiltersCommand();
+    if (name == "save" && args.size() >= 1)
+        return new SaveImageCommand(args);
+    if (name == "run" && args.size() == 1)
+        return new RunCommand(args);
+    if (name == "run-all" && args.size() == 0)
+        return new RunAllCommand();
+    return nullptr;
 }
 
-void removeImage(MyString& name)
-{
-	ImageList::getInstance().remove(name);
+// ===== LoadImagesCommand =====
+LoadImagesCommand::LoadImagesCommand(const MyVector<MyString>& args) {
+    for (size_t i = 0; i < args.size(); i++)
+        paths.push_back(args[i]);
+}
+void LoadImagesCommand::execute() {
+    for (size_t i = 0; i < paths.size(); i++)
+        ImageList::getInstance().add(paths[i]);
 }
 
-void printAll() {
-	ImageList::getInstance().printAll();
+// ===== RemoveImageCommand =====
+RemoveImageCommand::RemoveImageCommand(const MyVector<MyString>& args) {
+    name = args[0];
+}
+void RemoveImageCommand::execute() {
+    ImageList::getInstance().remove(name);
 }
 
-void addFilter(MyString& imageName, MyString& filterName)
-{
-	Image* image = ImageList::getInstance()[imageName];
-	if (!image) {
-		std::cout << "Image not found\n";
-		return;
-	}
-
-	image->addFilter(filterName);
+// ===== PrintAllCommand =====
+void PrintAllCommand::execute() {
+    ImageList::getInstance().printAll();
 }
 
-void removeFilter(MyString& imageName, int filterIndex)
-{
-	Image* image = ImageList::getInstance()[imageName];
-	if (!image) {
-		std::cout << "Image not found\n";
-		return;
-	}
-
-	image->removeFilter(filterIndex);
+// ===== AddFilterCommand =====
+AddFilterCommand::AddFilterCommand(const MyVector<MyString>& args) {
+    imageName = args[0];
+    filterName = args[1];
+}
+void AddFilterCommand::execute() {
+    Image* image = ImageList::getInstance()[imageName];
+    if (!image) {
+        std::cout << "Image not found\n";
+        return;
+    }
+    image->addFilter(filterName);
 }
 
-void run(MyString& imageName)
-{
-	Image* image = ImageList::getInstance()[imageName];
-	if (!image) {
-		std::cout << "Image not found\n";
-		return;
-	}
-
-	image->applyFilters();
+// ===== RemoveFilterCommand =====
+RemoveFilterCommand::RemoveFilterCommand(const MyVector<MyString>& args) {
+    imageName = args[0];
+    filterIndex = std::stoi(args[1]);
+}
+void RemoveFilterCommand::execute() {
+    Image* image = ImageList::getInstance()[imageName];
+    if (!image) {
+        std::cout << "Image not found\n";
+        return;
+    }
+    image->removeFilter(filterIndex);
 }
 
-void runAll()
-{
-	MyVector<MyString> images = ImageList::getInstance().getImageList();
-
-	for (size_t i = 0; i < images.size(); i++)
-	{
-		run(images[i]);
-	}
+// ===== RunCommand =====
+RunCommand::RunCommand(const MyVector<MyString>& args) {
+    imageName = args[0];
+}
+void RunCommand::execute() {
+    Image* image = ImageList::getInstance()[imageName];
+    if (!image) {
+        std::cout << "Image not found\n";
+        return;
+    }
+    image->applyFilters();
 }
 
-void showFilters(MyString& name)
-{
-	Image* image = ImageList::getInstance()[name];
-	if (!image) {
-		std::cout << "Image not found\n";
-		return;
-	}
-
-	image->showFilters();
+// ===== RunAllCommand =====
+void RunAllCommand::execute() {
+    MyVector<MyString> images = ImageList::getInstance().getImageList();
+    for (size_t i = 0; i < images.size(); i++) {
+        Image* image = ImageList::getInstance()[images[i]];
+        if (image) image->applyFilters();
+    }
 }
 
-void saveImage(MyString& name, MyString& savePath)
-{
-	Image* image = ImageList::getInstance()[name];
-	if (!image) {
-		std::cout << "Image not found\n";
-		return;
-	}
-
-	if (savePath.empty()) {
-		image->save(image->getOutputName());
-	}
-	else {
-		image->save(savePath);
-	}
+// ===== ShowFiltersCommand =====
+ShowFiltersCommand::ShowFiltersCommand(const MyVector<MyString>& args) {
+    name = args[0];
+}
+void ShowFiltersCommand::execute() {
+    Image* image = ImageList::getInstance()[name];
+    if (!image) {
+        std::cout << "Image not found\n";
+        return;
+    }
+    image->showFilters();
 }
 
-void showAllFilters()
-{
-	MyVector<MyString> images = ImageList::getInstance().getImageList();
+// ===== ShowAllFiltersCommand =====
+void ShowAllFiltersCommand::execute() {
+    MyVector<MyString> images = ImageList::getInstance().getImageList();
+    for (size_t i = 0; i < images.size(); i++) {
+        Image* image = ImageList::getInstance()[images[i]];
+        if (image) image->showFilters();
+    }
+}
 
-	for (size_t i = 0; i < images.size(); i++)
-	{
-		showFilters(images[i]);
-	}
+// ===== SaveImageCommand =====
+SaveImageCommand::SaveImageCommand(const MyVector<MyString>& args) {
+    name = args[0];
+    if (args.size() >= 2)
+        savePath = args[1];
+}
+void SaveImageCommand::execute() {
+    Image* image = ImageList::getInstance()[name];
+    if (!image) {
+        std::cout << "Image not found\n";
+        return;
+    }
+    if (savePath.empty())
+        image->save(image->getOutputName());
+    else
+        image->save(savePath);
 }

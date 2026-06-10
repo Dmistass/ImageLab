@@ -2,22 +2,81 @@
 #include "MyString.h"
 #include "MyVector.h"
 
-void loadImages(MyVector<MyString>& paths);
+class Command {
+public:
+    virtual ~Command() = default;
+    virtual void execute() = 0;
 
-void removeImage(MyString& name);
+    // Статическая фабрика — создаёт команду по имени
+    // args — чистые аргументы (без имени команды)
+    static Command* create(const MyString& name, const MyVector<MyString>& args);
+};
 
-void printAll();
+// ===== Наследники =====
 
-void addFilter(MyString& imageName, MyString& filterName);
+class LoadImagesCommand : public Command {
+    MyVector<MyString> paths;
+public:
+    LoadImagesCommand(const MyVector<MyString>& args);
+    void execute() override;
+};
 
-void removeFilter(MyString& imageName, int filterIndex);
+class RemoveImageCommand : public Command {
+    MyString name;
+public:
+    RemoveImageCommand(const MyVector<MyString>& args);
+    void execute() override;
+};
 
-void run(MyString& imageName);
+class PrintAllCommand : public Command {
+public:
+    void execute() override;
+};
 
-void runAll();
+class AddFilterCommand : public Command {
+    MyString imageName;
+    MyString filterName;
+public:
+    AddFilterCommand(const MyVector<MyString>& args);
+    void execute() override;
+};
 
-void showFilters(MyString& name);
+class RemoveFilterCommand : public Command {
+    MyString imageName;
+    int filterIndex = 0;
+public:
+    RemoveFilterCommand(const MyVector<MyString>& args);
+    void execute() override;
+};
 
-void showAllFilters();
+class RunCommand : public Command {
+    MyString imageName;
+public:
+    RunCommand(const MyVector<MyString>& args);
+    void execute() override;
+};
 
-void saveImage(MyString& name, MyString& savePath);
+class RunAllCommand : public Command {
+public:
+    void execute() override;
+};
+
+class ShowFiltersCommand : public Command {
+    MyString name;
+public:
+    ShowFiltersCommand(const MyVector<MyString>& args);
+    void execute() override;
+};
+
+class ShowAllFiltersCommand : public Command {
+public:
+    void execute() override;
+};
+
+class SaveImageCommand : public Command {
+    MyString name;
+    MyString savePath;
+public:
+    SaveImageCommand(const MyVector<MyString>& args);
+    void execute() override;
+};

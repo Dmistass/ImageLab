@@ -174,14 +174,17 @@ bool FileManager::save(Image* image, const MyString& savePath)
 
     if (imagePType == 1 || imagePType == 4) {
         // Чёрно-белое → P4
+        image->setPType(4);
         saveP4(image, outBuffer);
     }
     else if (imagePType == 2 || imagePType == 5) {
         // Серое → P5
+        image->setPType(5);
         saveP5(image, outBuffer);
     }
     else {
         // Цветное → P6
+        image->setPType(6);
         saveP6(image, outBuffer);
     }
 

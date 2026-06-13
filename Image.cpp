@@ -3,7 +3,6 @@
 #include "Image.h"
 #include "ImageList.h"
 #include "FileManager.h"
-#include <algorithm>
 #include "Filter.h"
 #include "FilterFactory.h"
 
@@ -54,7 +53,7 @@ bool Image::load(MyString& imagePath)
 {
 	path = imagePath;
 	size_t pos = path.find_last_of("/\\");
-	name = path.substr(pos + 1).c_str();
+	name = path.substr(pos + 1);
 	outputName = name;
 
 	if (ImageList::getInstance()[name]) {
@@ -116,12 +115,12 @@ const Pixel& Image::GetPixel(int x, int y) const
 	return pixels[static_cast<std::size_t>(y) * static_cast<std::size_t>(width) + static_cast<std::size_t>(x)];
 }
 
-std::vector<Pixel>& Image::GetPixels()
+MyVector<Pixel>& Image::GetPixels()
 {
 	return pixels;
 }
 
-const std::vector<Pixel>& Image::GetPixels() const
+const MyVector<Pixel>& Image::GetPixels() const
 {
 	return pixels;
 }
@@ -144,8 +143,8 @@ void Image::applyFilters()
 
 	size_t dotPos = outputName.find_last_of('.');
 	if (dotPos != MyString::npos) {
-		extension = outputName.substr(dotPos).c_str();
-		baseName = outputName.substr(0, dotPos).c_str();
+		extension = outputName.substr(dotPos);
+		baseName = outputName.substr(0, dotPos);
 	}
 
 	for (auto filter : filters)
@@ -158,7 +157,7 @@ void Image::applyFilters()
 		std::cout << "Filter " << filter->GetName() << " was apllyed to " << name << "\n";
 	}
 
-	outputName = (baseName + extension).c_str();
+	outputName = baseName + extension;
 	filters.clear();
 }
 

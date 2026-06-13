@@ -7,7 +7,7 @@
 // Функция для разбиения строки на вектор слов
 MyVector<MyString> splitCommand(const MyString& input) {
 	MyVector<MyString> tokens;
-	std::istringstream stream(input);
+	std::istringstream stream(input.c_str());
 	MyString token;
 
 	while (stream >> token) {
@@ -44,7 +44,7 @@ int main()
 	while (true)
 	{
 		std::cout << ">> ";
-		std::getline(std::cin, input);
+		getline(std::cin, input);
 
 		if (input == "quit") break;
 		if (input.empty()) continue;
@@ -52,5 +52,3 @@ int main()
 		executeCommand(input);
 	}
 }
-
-

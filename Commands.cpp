@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 #include "Commands.h"
 #include "ImageList.h"
 
@@ -67,7 +68,7 @@ void AddFilterCommand::execute() {
 // ===== RemoveFilterCommand =====
 RemoveFilterCommand::RemoveFilterCommand(const MyVector<MyString>& args) {
     imageName = args[0];
-    filterIndex = std::stoi(args[1]);
+    filterIndex = std::atoi(args[1].c_str());
 }
 void RemoveFilterCommand::execute() {
     Image* image = ImageList::getInstance()[imageName];

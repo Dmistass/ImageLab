@@ -42,8 +42,8 @@ public:
 	std::size_t GetPixelCount() const;
 	Pixel& GetPixel(int x, int y);
 	const Pixel& GetPixel(int x, int y) const;
-	std::vector<Pixel>& GetPixels();
-	const std::vector<Pixel>& GetPixels() const;
+	MyVector<Pixel>& GetPixels();
+	const MyVector<Pixel>& GetPixels() const;
 	int GetPType() const;
 	void setPType(int type);
 

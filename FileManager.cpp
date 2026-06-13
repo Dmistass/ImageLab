@@ -16,7 +16,7 @@ FileManager& FileManager::getInstance()
 
 bool FileManager::readToFileBuffer(const MyString& path, MyVector<char>& outBuffer)
 {
-    std::ifstream file(path, std::ios::binary);
+    std::ifstream file(path.c_str(), std::ios::binary);
     if (!file.is_open()) {
         std::cout << "Error: could not open file: " << path << "\n";
         return false;
@@ -46,7 +46,7 @@ bool FileManager::readToFileBuffer(const MyString& path, MyVector<char>& outBuff
 
 bool FileManager::writeFromFileBuffer(const MyString& path, const MyVector<char>& inBuffer)
 {
-    std::ofstream file(path, std::ios::binary);
+    std::ofstream file(path.c_str(), std::ios::binary);
     if (!file.is_open()) return false;
 
     file.write(inBuffer.data(), inBuffer.size());

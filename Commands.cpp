@@ -25,6 +25,8 @@ Command* Command::create(const MyString& name, const MyVector<MyString>& args) {
         return new RunCommand(args);
     if (name == "run-all" && args.size() == 0)
         return new RunAllCommand();
+    if (name == "help" && args.size() == 0)
+        return new HelpCommand();
     return nullptr;
 }
 
@@ -139,4 +141,21 @@ void SaveImageCommand::execute() {
         image->save(image->getOutputName());
     else
         image->save(savePath);
+}
+
+// ===== HelpCommand =====
+void HelpCommand::execute() {
+    std::cout << "Available commands:\n";
+    std::cout << "  load <path1> <path2> ... - Load images from files\n";
+    std::cout << "  remove <name> - Remove an image\n";
+    std::cout << "  printAll - Show all loaded images\n";
+    std::cout << "  add-filter <image> <filter> - Add a filter to an image\n";
+    std::cout << "  remove-filter <image> <index> - Remove a filter by index\n";
+    std::cout << "  show-filters <image> - Show filters of the image\n";
+    std::cout << "  show-all-filters - Show filters of all images\n";
+    std::cout << "  run <image> - Apply filters to the image\n";
+    std::cout << "  run-all - Apply filters to all images\n";
+    std::cout << "  save <image> [path] - Save an image\n";
+    std::cout << "  help - Show this help message\n";
+    std::cout << "  quit - Exit the program\n";
 }

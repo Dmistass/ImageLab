@@ -80,3 +80,8 @@ public:
     SaveImageCommand(const MyVector<MyString>& args);
     void execute() override;
 };
+
+class HelpCommand : public Command {
+public:
+    void execute() override;
+};

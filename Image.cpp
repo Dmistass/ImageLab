@@ -154,7 +154,7 @@ void Image::applyFilters()
 		baseName += "_";
 		baseName += filter->GetName();
 
-		std::cout << "Filter " << filter->GetName() << " was apllyed to " << name << "\n";
+		std::cout << "Filter " << filter->GetName() << " was apllied to " << name << "\n";
 	}
 
 	outputName = baseName + extension;

@@ -8,6 +8,7 @@ ImageList::ImageList()
 ImageList::~ImageList() {
 }
 
+// Finds image by name via findImageIndex, returns pointer or nullptr
 Image* ImageList::getByName(MyString& name)
 {
 	int i = findImageIndex(name);
@@ -18,19 +19,21 @@ Image* ImageList::getByName(MyString& name)
 	return nullptr;
 }
 
+// Find index of an image
 int ImageList::findImageIndex(MyString& name)
 {
 	for (size_t i = 0; i < images.size(); i++)
 	{
 		if (images[i].getName() == name)
 		{
-			return i;
+			return i; // found - return index
 		}
 	}
 
-	return -1;
+	return -1; // not found
 }
 
+// Singleton
 ImageList& ImageList::getInstance() {
 	static ImageList instance;
 	return instance;
@@ -40,20 +43,21 @@ Image* ImageList::add(MyString& path)
 {
 	Image* image = new Image(path);
 
-	// Если загрузка не удалась
+	// If loading failed
 	if (!image->isLoaded()) {
 		std::cout << "Failed to add: " << image->getName() << "\n";
 		delete image;
 		return nullptr;
 	}
 
-	images.push_back(*image);
+	images.push_back(*image); // copy into vector
 
 	std::cout << "Added: " << images[images.size() - 1].getName() << "\n";
 	
-	return image;
+	return &images[images.size() - 1];
 }
 
+// Removes image by name: finds index, erases from vector
 void ImageList::remove(MyString& name)
 {
 	int index = findImageIndex(name);
@@ -67,6 +71,7 @@ void ImageList::remove(MyString& name)
 	std::cout << "Image removed!\n";
 }
 
+// Prints names of all loaded images
 void ImageList::printAll()
 {
 	for (size_t i = 0; i < images.size(); i++)
@@ -75,6 +80,7 @@ void ImageList::printAll()
 	}
 }
 
+// Returns a vector of names of all loaded images
 MyVector<MyString> ImageList::getImageList()
 {
 	MyVector<MyString> imagesName;
@@ -86,6 +92,7 @@ MyVector<MyString> ImageList::getImageList()
 	return imagesName;
 }
 
+// Access operator by name
 Image* ImageList::operator[](MyString& name)
 {
 	return getByName(name);

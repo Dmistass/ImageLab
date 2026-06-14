@@ -4,16 +4,18 @@
 template <typename T>
 class MyVector {
 private:
-    T* data_;
-    size_t size_;
-    size_t capacity_;
+    T* data_;         // pointer to array of elements
+    size_t size_;     // how many elements are currently in the array
+    size_t capacity_; // how many elements the allocated memory can hold
 
 public:
+    // Default constructor - empty vector
     MyVector()
         : data_(nullptr), size_(0), capacity_(0)
     {
     }
 
+    // Constructor from count - creates a vector of count elements, default-initialized
     explicit MyVector(size_t count)
         : data_(static_cast<T*>(operator new(count * sizeof(T))))
         , size_(count), capacity_(count)
@@ -22,12 +24,14 @@ public:
             new (&data_[i]) T();
     }
 
+    // Destructor - calls clear() (calls destructors of elements) and frees memory
     ~MyVector()
     {
         clear();
         operator delete(data_);
     }
 
+    // Copy constructor - allocates new memory and copies elements via placement new
     MyVector(const MyVector& other)
         : data_(static_cast<T*>(operator new(other.size_ * sizeof(T))))
         , size_(other.size_), capacity_(other.size_)
@@ -36,6 +40,7 @@ public:
             new (&data_[i]) T(other.data_[i]);
     }
 
+    // Copy assignment - delete current state and copy from other
     MyVector& operator=(const MyVector& other)
     {
         if (this != &other) {
@@ -49,6 +54,7 @@ public:
         return *this;
     }
 
+    // Move constructor
     MyVector(MyVector&& other) noexcept
         : data_(other.data_), size_(other.size_), capacity_(other.capacity_)
     {
@@ -57,6 +63,7 @@ public:
         other.capacity_ = 0;
     }
 
+    // Move assignment
     MyVector& operator=(MyVector&& other) noexcept
     {
         if (this != &other) {
@@ -71,6 +78,7 @@ public:
         return *this;
     }
 
+    // Resize the vector
     void resize(size_t newSize)
     {
         if (newSize == size_) return;
@@ -86,6 +94,7 @@ public:
         capacity_ = newSize;
     }
 
+    // Reserve memory for at least newCapacity elements, without changing size
     void reserve(size_t newCapacity)
     {
         if (newCapacity <= capacity_) return;
@@ -103,6 +112,7 @@ public:
     T* data() { return data_; }
     const T* data() const { return data_; }
 
+    // Adds an element to the end, doubles the array if necessary
     void push_back(const T& value)
     {
         if (size_ >= capacity_)
@@ -120,6 +130,7 @@ public:
     T* end() { return data_ + size_; }
     const T* end() const { return data_ + size_; }
 
+    // Removes an element by pointer, calls destructors and moves elements
     void erase(T* pos)
     {
         if (pos < data_ || pos >= data_ + size_) return;
@@ -131,6 +142,7 @@ public:
         size_--;
     }
 
+    // Clears the vector - calls destructors of all elements, size = 0
     void clear()
     {
         for (size_t i = 0; i < size_; i++)

@@ -3,8 +3,7 @@
 #include <cstring>
 #include <istream>
 
-// ===== Приватные вспомогательные функции =====
-
+// Removes old buffer and creates a new one, copying str into it.
 void MyString::assign(const char* str)
 {
     delete[] data_;
@@ -21,6 +20,7 @@ void MyString::assign(const char* str)
     }
 }
 
+// Helper method for concatenating two strings
 char* MyString::concat(const char* s1, size_t len1, const char* s2, size_t len2)
 {
     char* buf = new char[len1 + len2 + 1];
@@ -29,7 +29,7 @@ char* MyString::concat(const char* s1, size_t len1, const char* s2, size_t len2)
     return buf;
 }
 
-// ===== Конструктор по умолчанию =====
+// Default constructor
 MyString::MyString()
     : data_(new char[1])
     , size_(0)
@@ -37,7 +37,7 @@ MyString::MyString()
     data_[0] = '\0';
 }
 
-// ===== Конструктор от C-строки =====
+// Constructor from string
 MyString::MyString(const char* str)
     : data_(nullptr)
     , size_(0)
@@ -45,7 +45,8 @@ MyString::MyString(const char* str)
     assign(str);
 }
 
-// ===== Конструктор копирования =====
+// Copy constructor
+// Simply copy the contents
 MyString::MyString(const MyString& other)
     : data_(new char[other.size_ + 1])
     , size_(other.size_)
@@ -53,13 +54,13 @@ MyString::MyString(const MyString& other)
     std::strcpy(data_, other.data_);
 }
 
-// ===== Деструктор =====
+// Destructor
 MyString::~MyString()
 {
     delete[] data_;
 }
 
-// ===== Копирующее присваивание =====
+// Copy assignment
 MyString& MyString::operator=(const MyString& other)
 {
     if (this != &other) {
@@ -68,7 +69,7 @@ MyString& MyString::operator=(const MyString& other)
     return *this;
 }
 
-// ===== Перемещающий конструктор =====
+// Move constructor
 MyString::MyString(MyString&& other) noexcept
     : data_(other.data_)
     , size_(other.size_)
@@ -77,7 +78,8 @@ MyString::MyString(MyString&& other) noexcept
     other.size_ = 0;
 }
 
-// ===== Перемещающее присваивание =====
+// Move assignment
+// Free our old buffer, take data from other, nullify other
 MyString& MyString::operator=(MyString&& other) noexcept
 {
     if (this != &other) {
@@ -92,43 +94,41 @@ MyString& MyString::operator=(MyString&& other) noexcept
     return *this;
 }
 
-// ===== c_str() =====
 const char* MyString::c_str() const
 {
     return data_;
 }
 
-// ===== empty() =====
 bool MyString::empty() const
 {
     return size_ == 0;
 }
 
-// ===== size() =====
+// Returns the length of the string without '\0'
 size_t MyString::size() const
 {
     return size_;
 }
 
-// ===== find_last_of (const char*) =====
+// Finds the last occurrence of any character from chars
 size_t MyString::find_last_of(const char* chars) const
 {
     if (!chars || !*chars) return npos;
 
     size_t charsLen = std::strlen(chars);
 
-    for (size_t i = size_; i > 0; i--) {
+    for (size_t i = size_; i > 0; i--) { // run from end to beginning
         for (size_t j = 0; j < charsLen; j++) {
             if (data_[i - 1] == chars[j]) {
-                return i - 1;
+                return i - 1; // found - return index
             }
         }
     }
 
-    return npos;
+    return npos; // didn't find anything
 }
 
-// ===== find_last_of (char) =====
+// Same, but looking for one specific character
 size_t MyString::find_last_of(char c) const
 {
     for (size_t i = size_; i > 0; i--) {
@@ -139,30 +139,32 @@ size_t MyString::find_last_of(char c) const
     return npos;
 }
 
-// ===== operator< =====
+// Lexicographic comparison of strings (needed for std::map<MyString, ...>)
 bool operator<(const MyString& lhs, const MyString& rhs)
 {
     return std::strcmp(lhs.data_, rhs.data_) < 0;
 }
 
 // ===== substr =====
+// Extracts a substring starting at pos with length count.
+// If pos is out of bounds - return an empty string.
 MyString MyString::substr(size_t pos, size_t count) const
 {
-    if (pos >= size_) return MyString();
+    if (pos >= size_) return MyString(); // out of bounds
 
     size_t realCount = count;
     if (realCount == npos || pos + realCount > size_) {
-        realCount = size_ - pos;
+        realCount = size_ - pos; // trim to end of string
     }
 
     char* buf = new char[realCount + 1];
     for (size_t i = 0; i < realCount; i++) {
-        buf[i] = data_[pos + i];
+        buf[i] = data_[pos + i]; // copy character by character
     }
     buf[realCount] = '\0';
 
     MyString result(buf);
-    delete[] buf;
+    delete[] buf; // delete temporary buffer
     return result;
 }
 
@@ -184,7 +186,9 @@ bool operator==(const char* lhs, const MyString& rhs)
     return std::strcmp(lhs, rhs.data_) == 0;
 }
 
-// ===== operator+= (const char*) =====
+
+// Appends a string to the end.
+// Uses concat() to join old and new strings in a new buffer.
 MyString& MyString::operator+=(const char* rhs)
 {
     if (!rhs || !*rhs) return *this;
@@ -199,20 +203,23 @@ MyString& MyString::operator+=(const char* rhs)
     return *this;
 }
 
-// ===== operator+= (const MyString&) =====
+
+// Reuses += for const char*, passing data_ from rhs
 MyString& MyString::operator+=(const MyString& rhs)
 {
     return *this += rhs.data_;
 }
 
-// ===== operator+ (MyString, const char*) =====
+
+// Creates a new string = lhs + rhs.
+// Allocate buffer via concat(), then change data_ and size_ of result.
 MyString operator+(const MyString& lhs, const char* rhs)
 {
     size_t rhsLen = (rhs ? std::strlen(rhs) : 0);
     char* buf = MyString::concat(lhs.data_, lhs.size_, rhs ? rhs : "", rhsLen);
 
     MyString result;
-    delete[] result.data_;
+    delete[] result.data_; // delete empty buffer created by constructor
     result.data_ = buf;
     result.size_ = lhs.size_ + rhsLen;
 
@@ -225,23 +232,22 @@ MyString operator+(const MyString& lhs, const MyString& rhs)
     return lhs + rhs.data_;
 }
 
-// ===== operator<< (вывод в поток) =====
 std::ostream& operator<<(std::ostream& os, const MyString& str)
 {
     os << str.data_;
     return os;
 }
 
-// ===== operator>> (чтение слова из потока) =====
+
 std::istream& operator>>(std::istream& is, MyString& str)
 {
-    // Очищаем строку
+    // Clear the string
     delete[] str.data_;
     str.data_ = new char[1];
     str.data_[0] = '\0';
     str.size_ = 0;
 
-    // Пропускаем пробелы
+    // Skip whitespace
     char c;
     while (is.get(c)) {
         if (c != ' ' && c != '\t' && c != '\n' && c != '\r')
@@ -250,7 +256,7 @@ std::istream& operator>>(std::istream& is, MyString& str)
 
     if (!is) return is;
 
-    // Читаем слово (до пробела)
+    // Read word until whitespace
     size_t capacity = 32;
     char* buf = new char[capacity];
     size_t len = 0;
@@ -280,16 +286,16 @@ std::istream& operator>>(std::istream& is, MyString& str)
     str.data_ = buf;
     str.size_ = len;
 
-    // Сбрасываем failbit/eofbit, так как хотя бы один токен был успешно прочитан
+    // Reset failbit/eofbit, since at least one token was successfully read
     is.clear();
 
     return is;
 }
 
-// ===== getline (чтение строки целиком) =====
+
 std::istream& getline(std::istream& is, MyString& str, char delim)
 {
-    // Очищаем строку
+    // Clear the string
     delete[] str.data_;
     str.data_ = new char[1];
     str.data_[0] = '\0';
@@ -314,7 +320,7 @@ std::istream& getline(std::istream& is, MyString& str, char delim)
         buf[len++] = c;
     }
 
-    // Удаляем завершающий \r (для совместимости с CRLF в Windows)
+    // Remove trailing \r
     while (len > 0 && (buf[len - 1] == '\r' || buf[len - 1] == '\n')) {
         len--;
     }

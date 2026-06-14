@@ -4,7 +4,7 @@
 #include "MyVector.h"
 #include "Commands.h"
 
-// Функция для разбиения строки на вектор слов
+// Splits the input string into separate words
 MyVector<MyString> splitCommand(const MyString& input) {
 	MyVector<MyString> tokens;
 	std::istringstream stream(input.c_str());
@@ -16,13 +16,14 @@ MyVector<MyString> splitCommand(const MyString& input) {
 	return tokens;
 }
 
+// Parses and executes a command
 void executeCommand(MyString& command) {
 	MyVector<MyString> args = splitCommand(command);
 	if (args.size() == 0) return;
 
 	MyString cmdName = args[0];
 
-	// Удаляем первый элемент (имя команды) — остаются только чистые аргументы
+	// Remove the first element (command name) - only pure arguments remain
 	MyVector<MyString> cmdArgs;
 	for (size_t i = 1; i < args.size(); i++)
 		cmdArgs.push_back(args[i]);
@@ -37,6 +38,8 @@ void executeCommand(MyString& command) {
 	delete cmd;
 }
 
+// Main program loop
+// "quit" exits the program.
 int main()
 {
 	MyString input;

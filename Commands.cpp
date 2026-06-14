@@ -2,8 +2,9 @@
 #include <cstdlib>
 #include "Commands.h"
 #include "ImageList.h"
+#include "FilterFactory.h"
 
-// ===== Статическая фабрика Command::create =====
+// Takes a command name and argument list, creates and returns the corresponding command
 Command* Command::create(const MyString& name, const MyVector<MyString>& args) {
     if (name == "load" && args.size() >= 1)
         return new LoadImagesCommand(args);
@@ -27,37 +28,40 @@ Command* Command::create(const MyString& name, const MyVector<MyString>& args) {
         return new RunAllCommand();
     if (name == "help" && args.size() == 0)
         return new HelpCommand();
+    if (name == "show-available-filters" && args.size() == 0)
+        return new ShowAvailableFiltersCommand();
     return nullptr;
 }
 
-// ===== LoadImagesCommand =====
+// Saves all passed paths into paths
 LoadImagesCommand::LoadImagesCommand(const MyVector<MyString>& args) {
     for (size_t i = 0; i < args.size(); i++)
         paths.push_back(args[i]);
 }
+// Loads each image
 void LoadImagesCommand::execute() {
     for (size_t i = 0; i < paths.size(); i++)
         ImageList::getInstance().add(paths[i]);
 }
 
-// ===== RemoveImageCommand =====
 RemoveImageCommand::RemoveImageCommand(const MyVector<MyString>& args) {
     name = args[0];
 }
+// Removes the image
 void RemoveImageCommand::execute() {
     ImageList::getInstance().remove(name);
 }
 
-// ===== PrintAllCommand =====
 void PrintAllCommand::execute() {
     ImageList::getInstance().printAll();
 }
 
-// ===== AddFilterCommand =====
+// Takes an image name and a filter name
 AddFilterCommand::AddFilterCommand(const MyVector<MyString>& args) {
     imageName = args[0];
     filterName = args[1];
 }
+// Finds the image by name and adds a filter to it
 void AddFilterCommand::execute() {
     Image* image = ImageList::getInstance()[imageName];
     if (!image) {
@@ -67,10 +71,10 @@ void AddFilterCommand::execute() {
     image->addFilter(filterName);
 }
 
-// ===== RemoveFilterCommand =====
+// Takes an image name and filter index (from show-filters)
 RemoveFilterCommand::RemoveFilterCommand(const MyVector<MyString>& args) {
     imageName = args[0];
-    filterIndex = std::atoi(args[1].c_str());
+    filterIndex = std::atoi(args[1].c_str());  // convert string to number
 }
 void RemoveFilterCommand::execute() {
     Image* image = ImageList::getInstance()[imageName];
@@ -81,10 +85,10 @@ void RemoveFilterCommand::execute() {
     image->removeFilter(filterIndex);
 }
 
-// ===== RunCommand =====
 RunCommand::RunCommand(const MyVector<MyString>& args) {
     imageName = args[0];
 }
+// Applies all assigned filters to the specified image
 void RunCommand::execute() {
     Image* image = ImageList::getInstance()[imageName];
     if (!image) {
@@ -94,7 +98,7 @@ void RunCommand::execute() {
     image->applyFilters();
 }
 
-// ===== RunAllCommand =====
+// Applies filters to all loaded images
 void RunAllCommand::execute() {
     MyVector<MyString> images = ImageList::getInstance().getImageList();
     for (size_t i = 0; i < images.size(); i++) {
@@ -103,10 +107,11 @@ void RunAllCommand::execute() {
     }
 }
 
-// ===== ShowFiltersCommand =====
+// Stores the image name
 ShowFiltersCommand::ShowFiltersCommand(const MyVector<MyString>& args) {
     name = args[0];
 }
+// Shows the filter list of the image
 void ShowFiltersCommand::execute() {
     Image* image = ImageList::getInstance()[name];
     if (!image) {
@@ -116,7 +121,7 @@ void ShowFiltersCommand::execute() {
     image->showFilters();
 }
 
-// ===== ShowAllFiltersCommand =====
+// Shows filters for each loaded image
 void ShowAllFiltersCommand::execute() {
     MyVector<MyString> images = ImageList::getInstance().getImageList();
     for (size_t i = 0; i < images.size(); i++) {
@@ -125,12 +130,13 @@ void ShowAllFiltersCommand::execute() {
     }
 }
 
-// ===== SaveImageCommand =====
+// Takes an image name and an optional save path
 SaveImageCommand::SaveImageCommand(const MyVector<MyString>& args) {
     name = args[0];
     if (args.size() >= 2)
-        savePath = args[1];
+        savePath = args[1];  // if second argument is passed - it's the save path
 }
+// Saves the image: if savePath is not set - uses outputName
 void SaveImageCommand::execute() {
     Image* image = ImageList::getInstance()[name];
     if (!image) {
@@ -143,7 +149,7 @@ void SaveImageCommand::execute() {
         image->save(savePath);
 }
 
-// ===== HelpCommand =====
+// Prints the list of all available commands with a brief description
 void HelpCommand::execute() {
     std::cout << "Available commands:\n";
     std::cout << "  load <path1> <path2> ... - Load images from files\n";
@@ -156,6 +162,16 @@ void HelpCommand::execute() {
     std::cout << "  run <image> - Apply filters to the image\n";
     std::cout << "  run-all - Apply filters to all images\n";
     std::cout << "  save <image> [path] - Save an image\n";
+    std::cout << "  show-available-filters - Show all available filter names\n";
     std::cout << "  help - Show this help message\n";
     std::cout << "  quit - Exit the program\n";
+}
+
+// Prints all filter names available in FilterFactory
+void ShowAvailableFiltersCommand::execute() {
+    MyVector<MyString> names = FilterFactory::getInstance().getAvailableFilterNames();
+    std::cout << "Available filters:\n";
+    for (size_t i = 0; i < names.size(); i++) {
+        std::cout << "  - " << names[i] << "\n";
+    }
 }

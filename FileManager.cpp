@@ -14,6 +14,7 @@ FileManager& FileManager::getInstance()
     return instance;
 }
 
+// Reads the entire file into a binary buffer
 bool FileManager::readToFileBuffer(const MyString& path, MyVector<char>& outBuffer)
 {
     std::ifstream file(path.c_str(), std::ios::binary);
@@ -22,18 +23,18 @@ bool FileManager::readToFileBuffer(const MyString& path, MyVector<char>& outBuff
         return false;
     }
 
-    // Получаем размер файла
+    // Get file size - seek to the end and read position
     file.seekg(0, std::ios::end);
     std::streamsize size = file.tellg();
-    file.seekg(0, std::ios::beg);
+    file.seekg(0, std::ios::beg);  // return to the beginning
 
     if (size <= 0) {
         std::cout << "Error: empty file\n";
         return false;
     }
 
-    outBuffer.resize(static_cast<size_t>(size));
-    file.read(outBuffer.data(), size);
+    outBuffer.resize(static_cast<size_t>(size));  // allocate memory
+    file.read(outBuffer.data(), size);            // read everything at once
 
     if (!file.good()) {
         std::cout << "Error: failed to read file\n";
@@ -44,6 +45,7 @@ bool FileManager::readToFileBuffer(const MyString& path, MyVector<char>& outBuff
     return true;
 }
 
+// Writes a buffer to a file.
 bool FileManager::writeFromFileBuffer(const MyString& path, const MyVector<char>& inBuffer)
 {
     std::ofstream file(path.c_str(), std::ios::binary);
@@ -54,6 +56,7 @@ bool FileManager::writeFromFileBuffer(const MyString& path, const MyVector<char>
     return !file.fail();
 }
 
+// Skips spaces, tabs, newlines and comments
 void FileManager::skipWhitespaceAndComments(const MyVector<char>& buffer, int& pos)
 {
     while (pos < (int)buffer.size()) {
@@ -62,15 +65,18 @@ void FileManager::skipWhitespaceAndComments(const MyVector<char>& buffer, int& p
             continue;
         }
         if (buffer[pos] == '#') {
+            // comment - skip everything until \n
             while (pos < (int)buffer.size() && buffer[pos] != '\n') {
                 pos++;
             }
             continue;
         }
-        break;
+        break;  // found a meaningful character
     }
 }
 
+// Reads an integer from the buffer, first skipping whitespace/comments.
+// Used for reading width, height, maxVal and pixel data in ASCII formats.
 int FileManager::readInt(const MyVector<char>& buffer, int& pos)
 {
     skipWhitespaceAndComments(buffer, pos);
@@ -88,6 +94,7 @@ int FileManager::readInt(const MyVector<char>& buffer, int& pos)
         return -1;
     }
 
+    // Build the number character by character: '5' -> 5, '3' -> 53, etc.
     while (pos < (int)buffer.size() && std::isdigit(buffer[pos])) {
         result = result * 10 + (buffer[pos] - '0');
         pos++;
@@ -96,6 +103,10 @@ int FileManager::readInt(const MyVector<char>& buffer, int& pos)
     return negative ? -result : result;
 }
 
+// Loading an image from a file
+// 1. Read the entire file into a buffer
+// 2. Find the type "P1".."P6" after possible comments
+// 3. Determine PType and call the corresponding parser
 bool FileManager::load(Image* image)
 {
     if (!image) {
@@ -113,11 +124,11 @@ bool FileManager::load(Image* image)
         return false;
     }
 
-    // Пропускаем комментарии и пробелы ПЕРЕД магическим числом
+    // Skip comments and whitespace before the type
     int pos = 0;
     skipWhitespaceAndComments(buffer, pos);
 
-    // Читаем "магическое число" (P1, P2, ..., P6)
+    // Read the "magic number" (P1, P2, ..., P6)
     if (pos + 1 >= (int)buffer.size() || buffer[pos] != 'P' || buffer[pos + 1] < '1' || buffer[pos + 1] > '6') {
         std::cout << "Error: not a NETpbm file (expected P1-P6)\n";
         return false;
@@ -126,7 +137,7 @@ bool FileManager::load(Image* image)
     image->PType = buffer[pos + 1] - '0';
     pos += 2;
 
-    // Парсим в зависимости от типа P
+    // Parse depending on P type
     switch (image->PType) {
         case 1: parseP1(image, buffer, pos); break;
         case 2: parseP2(image, buffer, pos); break;
@@ -144,13 +155,8 @@ bool FileManager::load(Image* image)
     return true;
 }
 
-// ---- Сохранение ----
-// Любое изображение сохраняется в бинарном виде:
-//   P4 — если maxVal == 1 (чёрно-белое)
-//   P5 — если все пиксели серые (r == g == b)
-//   P6 — цветное (RGB)
-
-// Вспомогательная функция: записать число int в outBuffer
+// ---- Saving ----
+// Any image is saved in binary format (P4, P5, P6)
 static void writeIntToBuffer(int val, MyVector<char>& buf) {
     if (val == 0) { buf.push_back('0'); return; }
     char digits[16];
@@ -159,9 +165,11 @@ static void writeIntToBuffer(int val, MyVector<char>& buf) {
         digits[len++] = '0' + (val % 10);
         val /= 10;
     }
-    for (int i = len - 1; i >= 0; i--) buf.push_back(digits[i]);
+    for (int i = len - 1; i >= 0; i--) buf.push_back(digits[i]);  // reverse
 }
 
+// Saves the image to a file. Automatically selects format:
+// P4 for P1/P4, P5 for P2/P5, P6 for P3/P6
 bool FileManager::save(Image* image, const MyString& savePath)
 {
     if (!image || !image->isLoaded()) {
@@ -173,17 +181,17 @@ bool FileManager::save(Image* image, const MyString& savePath)
     int imagePType = image->GetPType();
 
     if (imagePType == 1 || imagePType == 4) {
-        // Чёрно-белое → P4
+        // Black-and-white → P4
         image->setPType(4);
         saveP4(image, outBuffer);
     }
     else if (imagePType == 2 || imagePType == 5) {
-        // Серое → P5
+        // Grayscale → P5
         image->setPType(5);
         saveP5(image, outBuffer);
     }
     else {
-        // Цветное → P6
+        // Color → P6
         image->setPType(6);
         saveP6(image, outBuffer);
     }
@@ -198,9 +206,12 @@ bool FileManager::save(Image* image, const MyString& savePath)
     return true;
 }
 
+// Saves in P4 (binary black-and-white).
+// Each row is packed: 8 pixels -> 1 byte.
+// MSB of the byte = leftmost pixel
 void FileManager::saveP4(Image* image, MyVector<char>& outBuffer)
 {
-    // Заголовок: "P4\nwidth height\n"
+    // Header: "P4\nwidth height\n"
     outBuffer.push_back('P');
     outBuffer.push_back('4');
     outBuffer.push_back('\n');
@@ -229,9 +240,11 @@ void FileManager::saveP4(Image* image, MyVector<char>& outBuffer)
     }
 }
 
+// Saves in P5 (binary grayscale).
+// Each pixel - 1 byte (grayscale value).
 void FileManager::saveP5(Image* image, MyVector<char>& outBuffer)
 {
-    // Заголовок: "P5\nwidth height\n255\n"
+    // Header: "P5\nwidth height\n255\n"
     outBuffer.push_back('P');
     outBuffer.push_back('5');
     outBuffer.push_back('\n');
@@ -253,9 +266,11 @@ void FileManager::saveP5(Image* image, MyVector<char>& outBuffer)
     }
 }
 
+// Saves in P6 (binary full-color RGB).
+// Each pixel - 3 consecutive bytes: R, G, B.
 void FileManager::saveP6(Image* image, MyVector<char>& outBuffer)
 {
-    // Заголовок: "P6\nwidth height\n255\n"
+    // Header: "P6\nwidth height\n255\n"
     outBuffer.push_back('P');
     outBuffer.push_back('6');
     outBuffer.push_back('\n');
@@ -278,9 +293,10 @@ void FileManager::saveP6(Image* image, MyVector<char>& outBuffer)
     }
 }
 
-// ---- Парсеры для загрузки ----
+// ---- Parsers for loading ----
 
-// P1: ASCII черно-белое (0 = белый, 1 = черный)
+// P1: ASCII black-and-white (0 = white, 1 = black).
+// Read width, height, then characters '0'/'1' separated by whitespace
 void FileManager::parseP1(Image* image, const MyVector<char>& buffer, int& pos)
 {
     image->width = readInt(buffer, pos);
@@ -293,6 +309,7 @@ void FileManager::parseP1(Image* image, const MyVector<char>& buffer, int& pos)
     int pixelCount = 0;
     int totalPixels = image->width * image->height;
 
+    // Read characters, skipping whitespace, until we have totalPixels
     while (pixelCount < totalPixels && pos < (int)buffer.size()) {
         skipWhitespaceAndComments(buffer, pos);
         if (pos >= (int)buffer.size()) break;
@@ -303,7 +320,7 @@ void FileManager::parseP1(Image* image, const MyVector<char>& buffer, int& pos)
             pos++;
             pixelCount++;
         } else {
-            pos++;
+            pos++;  // skip garbage characters
         }
     }
 
@@ -313,12 +330,15 @@ void FileManager::parseP1(Image* image, const MyVector<char>& buffer, int& pos)
     }
 }
 
-// P2: ASCII градации серого
+// P2: ASCII grayscale.
+// Read width, height, maxVal. Then read numbers via readInt().
+// Each number - grayscale value from 0 to maxVal.
+// Scale to 0..255: gray = val * 255 / maxVal.
 void FileManager::parseP2(Image* image, const MyVector<char>& buffer, int& pos)
 {
     image->width = readInt(buffer, pos);
     image->height = readInt(buffer, pos);
-    image->maxVal = readInt(buffer, pos);
+    image->maxVal = readInt(buffer, pos);  // maximum value in the file (may not be 255)
 
     if (image->maxVal <= 0) {
         std::cout << "Error: invalid maxVal for P2\n";
@@ -335,6 +355,7 @@ void FileManager::parseP2(Image* image, const MyVector<char>& buffer, int& pos)
         int val = readInt(buffer, pos);
         if (val < 0) break;
 
+        // Scale: if file stores 0..65535, then val * 255 / maxVal gives 0..255
         short gray = static_cast<short>(val * 255 / image->maxVal);
         image->pixels.push_back(Pixel(gray));
         pixelCount++;
@@ -346,7 +367,9 @@ void FileManager::parseP2(Image* image, const MyVector<char>& buffer, int& pos)
     }
 }
 
-// P3: ASCII цветной (RGB)
+// P3: ASCII color (RGB).
+// Read width, height, maxVal. Then read R, G, B.
+// Each channel is scaled to 0..255
 void FileManager::parseP3(Image* image, const MyVector<char>& buffer, int& pos)
 {
     image->width = readInt(buffer, pos);
@@ -364,6 +387,7 @@ void FileManager::parseP3(Image* image, const MyVector<char>& buffer, int& pos)
     int pixelCount = 0;
     int totalPixels = image->width * image->height;
 
+    // Read 3 numbers (R, G, B) per pixel
     while (pixelCount < totalPixels && pos < (int)buffer.size()) {
         int r = readInt(buffer, pos);
         if (r < 0) break;
@@ -386,7 +410,9 @@ void FileManager::parseP3(Image* image, const MyVector<char>& buffer, int& pos)
     }
 }
 
-// P4: Бинарное черно-белое (1 бит на пиксель)
+// P4: Binary black-and-white (1 bit per pixel).
+// After the header comes binary data: each row is packed into ceil(width/8) bytes.
+// MSB of the first byte = leftmost pixel of the row.
 void FileManager::parseP4(Image* image, const MyVector<char>& buffer, int& pos)
 {
     image->width = readInt(buffer, pos);
@@ -398,26 +424,30 @@ void FileManager::parseP4(Image* image, const MyVector<char>& buffer, int& pos)
 
     skipWhitespaceAndComments(buffer, pos);
 
-    int bytesPerRow = (image->width + 7) / 8;
+    int bytesPerRow = (image->width + 7) / 8;  // how many bytes per row
 
+    // Go through all rows and pixels, unpacking bits
     for (int y = 0; y < image->height; y++) {
         for (int x = 0; x < image->width; x++) {
-            int byteIndex = pos + x / 8;
-            int bitIndex = 7 - (x % 8);
+            int byteIndex = pos + x / 8; // which byte the pixel is in
+            int bitIndex = 7 - (x % 8); // which bit (MSB = 7, LSB = 0)
 
             if (byteIndex >= (int)buffer.size()) {
                 std::cout << "Warning: P4 file ended early at row " << y << "\n";
                 return;
             }
 
-            short gray = (buffer[byteIndex] >> bitIndex) & 1;
+            short gray = (buffer[byteIndex] >> bitIndex) & 1;  // extract bit
             image->pixels.push_back(Pixel(gray));
         }
-        pos += bytesPerRow;
+        pos += bytesPerRow;  // move to the next row
     }
 }
 
-// P5: Бинарные градации серого
+// P5: Binary grayscale.
+// After the header comes binary data:
+// - if maxVal <= 255 - 1 byte per pixel
+// - if maxVal > 255 - 2 bytes per pixel
 void FileManager::parseP5(Image* image, const MyVector<char>& buffer, int& pos)
 {
     image->width = readInt(buffer, pos);
@@ -462,7 +492,9 @@ void FileManager::parseP5(Image* image, const MyVector<char>& buffer, int& pos)
     }
 }
 
-// P6: Бинарный цветной (RGB)
+// P6: Binary color (RGB)
+// - if maxVal <= 255 - 3 bytes per pixel (R, G, B)
+// - if maxVal > 255 - 6 bytes per pixel
 void FileManager::parseP6(Image* image, const MyVector<char>& buffer, int& pos)
 {
     image->width = readInt(buffer, pos);
